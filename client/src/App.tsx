@@ -1,32 +1,68 @@
-import { useState, useMemo } from 'react';
-import { generateDungeon, renderMapToString, isMapTraversable, getStartPosition } from './game/map';
-import type { DungeonMap, Position } from './game/map';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { generateDungeon, getStartPosition, renderMapToString } from './game/map';
+import { createPlayer } from './game/entities';
+import { createGameState, movePlayer } from './game/engine';
 
 function App() {
-  const initialData = useMemo(() => {
-    const newMap = generateDungeon();
-    return {
-      map: newMap,
-      traversable: isMapTraversable(newMap),
-      startPos: getStartPosition(newMap),
-    };
+  const gameState = useMemo(() => {
+    const map = generateDungeon();
+    const startPos = getStartPosition(map);
+    const player = createPlayer(startPos);
+    return createGameState(map, player, 1);
   }, []);
 
-  const [map] = useState<DungeonMap>(initialData.map);
-  const [playerPos, setPlayerPos] = useState<Position>(initialData.startPos);
-  const [traversable] = useState<boolean>(initialData.traversable);
+  const [currentState, setCurrentState] = useState(gameState);
 
-  const regenerateMap = () => {
-    const newMap = generateDungeon();
-    const startPos = getStartPosition(newMap);
-    setPlayerPos(startPos);
-  };
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    let dx = 0;
+    let dy = 0;
 
-  const mapDisplay = renderMapToString(map, playerPos);
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'w':
+      case 'W':
+        dy = -1;
+        break;
+      case 'ArrowDown':
+      case 's':
+      case 'S':
+        dy = 1;
+        break;
+      case 'ArrowLeft':
+      case 'a':
+      case 'A':
+        dx = -1;
+        break;
+      case 'ArrowRight':
+      case 'd':
+      case 'D':
+        dx = 1;
+        break;
+      default:
+        return;
+    }
+
+    e.preventDefault();
+    setCurrentState(prev => movePlayer(prev, dx, dy));
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  const mapDisplay = renderMapToString(currentState.map, currentState.player.position);
+  const { player, floor, message } = currentState;
 
   return (
     <div>
       <h1>Dungeon Crawler</h1>
+      <div style={{ marginBottom: '8px' }}>
+        <strong>Floor:</strong> {floor} | 
+        <strong> HP:</strong> {player.stats.hp}/{player.stats.maxHp} |
+        <strong> Level:</strong> {player.stats.level} |
+        <strong> XP:</strong> {player.stats.xp}/{player.stats.xpToNextLevel}
+      </div>
       <pre style={{ 
         fontFamily: 'monospace', 
         lineHeight: '1.2',
@@ -37,14 +73,11 @@ function App() {
       }}>
         {mapDisplay}
       </pre>
-      <div style={{ marginTop: '16px' }}>
-        <button onClick={regenerateMap}>Generate New Map</button>
-        <span style={{ marginLeft: '16px' }}>
-          Map traversable: {traversable ? '✓ Yes' : '✗ No'}
-        </span>
-        <span style={{ marginLeft: '16px' }}>
-          Rooms: {map.rooms.length}
-        </span>
+      <div style={{ marginTop: '16px', color: '#888' }}>
+        {message || 'Use arrow keys or WASD to move.'}
+      </div>
+      <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
+        @ = Player | . = Floor | · = Corridor | # = Wall | &gt; = Exit
       </div>
     </div>
   );
