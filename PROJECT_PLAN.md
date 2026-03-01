@@ -57,16 +57,16 @@ dungeon_crawler/
 ---
 
 ### Milestone 2 — Map Generation
-- [ ] Define core data types: `Tile`, `Room`, `DungeonMap`, `Position`
-- [ ] Implement BSP (Binary Space Partitioning) dungeon generator
+- [x] Define core data types: `Tile`, `Room`, `DungeonMap`, `Position`
+- [x] Implement BSP (Binary Space Partitioning) dungeon generator
   - Recursively split space into sections
   - Place a room in each section
   - Connect rooms with corridors
-- [ ] Render the generated map as an ASCII grid in the browser
+- [x] Render the generated map as an ASCII grid in the browser
   - Floor: `.`
   - Wall: `#`
   - Corridor: `·`
-- [ ] Verify maps are traversable (all rooms reachable)
+- [x] Verify maps are traversable (all rooms reachable)
 
 ---
 
