@@ -1,0 +1,12 @@
+{
+  "name": "dungeon-crawler",
+  "private": true,
+  "workspaces": ["client", "server"],
+  "scripts": {
+    "dev": "concurrently \"bun run --filter client dev\" \"bun run --filter server dev\"",
+    "build": "bun run --filter client build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
